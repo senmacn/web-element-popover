@@ -1,0 +1,6 @@
+/node_modules
+/dist
+.DS_Store
+/stale
+/src/api_backup
+/.vscode
