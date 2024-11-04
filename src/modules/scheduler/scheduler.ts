@@ -1,5 +1,6 @@
 import Monitor from '../monitor';
 import Finder from '../finder';
+import { GlobalConfig } from '@/config/config';
 
 class Scheduler {
   globalConfig: GlobalConfig;
@@ -22,7 +23,8 @@ class Scheduler {
       }
 
       const records = this.monitor.getRecords();
-      if (!records) {
+      
+      if (!records || records.size === 0) {
         this.continueSchedule();
         return;
       }
@@ -63,11 +65,13 @@ class Scheduler {
   start() {
     if (!this.running) {
       this.running = true;
+      this.monitor.start();
       this.schedule();
     }
   }
   end() {
     this.running = false;
+    this.monitor.end();
     if (this.timer) {
       clearTimeout(this.timer);
     }

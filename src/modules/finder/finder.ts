@@ -1,26 +1,6 @@
+import { shouldProcessNode } from '@/utils/filter';
 import type { FindConfig } from './type';
-import type { GlobalConfig, SelectionRule } from '@/config';
-
-function matchesRule(element: Element, rule: SelectionRule): boolean {
-  if (rule.tag && element.tagName.toLowerCase() !== rule.tag.toLowerCase()) return false;
-  if (rule.id && element.id !== rule.id) return false;
-  if (rule.class && !element.classList.contains(rule.class)) return false;
-  return true;
-}
-
-function shouldProcessNode(
-  element: Element,
-  include?: SelectionRule[],
-  exclude?: SelectionRule[]
-): boolean {
-  if (include && include.length > 0) {
-    return include.some((rule) => matchesRule(element, rule));
-  }
-  if (exclude && exclude.length > 0) {
-    return !exclude.some((rule) => matchesRule(element, rule));
-  }
-  return true;
-}
+import { GlobalConfig } from '@/config/config';
 
 class Finder {
   config: FindConfig = {};
@@ -38,6 +18,7 @@ class Finder {
       NodeFilter.SHOW_TEXT,
       {
         acceptNode: (node) => {
+          // TODO: 对于popover的筛选还不太好
           if (node.parentElement && shouldProcessNode(
             node.parentElement,
             this.globalConfig.rules?.include,

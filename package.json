@@ -1,23 +1,40 @@
 {
   "name": "web-element-popover",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "The auto popover solution for the web",
+  "type": "module",
+  "main": "./dist/lib.umd.js",
+  "module": "./dist/lib.es.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist/*"
+  ],
+  "exports": {
+    ".": {
+      "import": "./dist/lib.es",
+      "require": "./dist/lib.umd"
+    },
+    "./README.md": "./README.md"
+  },
   "scripts": {
-    "dev": "vite",
-    "start": "vite",
-    "build": "vite build",
+    "demo": "cross-env BASE_ENV=development vite",
+    "build:clean": "rimraf ./dist",
+    "build": "cross-env BASE_ENV=production vite build",
     "test": "vitest",
-    "publish": ""
+    "publish": "npm publish --registry https://registry.npmjs.org"
   },
   "author": "senmacn",
   "license": "ISC",
   "devDependencies": {
+    "cross-env": "^7.0.3",
     "eslint": "^9.13.0",
     "eslint-plugin-prettier": "^5.2.1",
+    "rimraf": "^6.0.1",
     "typescript": "^5.6.3",
     "vite": "^5.4.10",
-    "vite-plugin-eslint": "^1.8.1"
+    "vite-plugin-dts": "^4.3.0",
+    "vite-plugin-eslint": "^1.8.1",
+    "vitest": "^2.1.4"
   },
   "browserslist": {
     "production": [

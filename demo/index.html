@@ -1,14 +1,74 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Document</title>
-</head>
-<body>
-  <div>
-    
-  </div>
-  <script src="" type="module"></script>
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <link rel="stylesheet" href="../dist/index.css">
+  <style>
+    #options {
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      gap: 50px;
+    }
+    #display-box {
+      width: 500px;
+      height: 500px;
+      margin: 0 auto;
+      margin-top: 10px;
+      border: 1px solid black;
+    }
+    #display-box div {
+      padding: 10px;
+    }
+  </style>
+  <body>
+    <div id="options">
+      <button class="key1-add">添加Key1</button>
+      <button class="key1-delete">删除Key1</button>
+      <button class="key2-add">添加Key2</button>
+      <button class="key2-delete">删除Key2</button>
+      <button class="key3-add">添加Key3</button>
+      <button class="key3-delete">删除Key3</button>
+    </div>
+    <div id="display-box"></div>
+    <script>
+      document.getElementsByClassName('key1-add')[0].addEventListener('click', () => {
+        const item = document.createElement('div');
+        item.innerHTML = 'key1';
+        item.className = 'key1';
+        document.getElementById('display-box').append(item);
+      });
+      document.getElementsByClassName('key1-delete')[0].addEventListener('click', () => {
+        Array.from(document.getElementsByClassName('key1')).forEach((item) =>
+          document.getElementById('display-box').removeChild(item)
+        );
+      });
+      document.getElementsByClassName('key2-add')[0].addEventListener('click', () => {
+        const item = document.createElement('div');
+        item.innerHTML = 'key2';
+        item.className = 'key2';
+        document.getElementById('display-box').append(item);
+      });
+      document.getElementsByClassName('key2-delete')[0].addEventListener('click', () => {
+        Array.from(document.getElementsByClassName('key2')).forEach((item) =>
+          document.getElementById('display-box').removeChild(item)
+        );
+      });
+      document.getElementsByClassName('key3-add')[0].addEventListener('click', () => {
+        const item = document.createElement('div');
+        item.innerHTML = 'key3';
+        item.className = 'key3';
+        document.getElementById('display-box').append(item);
+      });
+      document.getElementsByClassName('key3-delete')[0].addEventListener('click', () => {
+        Array.from(document.getElementsByClassName('key3')).forEach((item) =>
+          document.getElementById('display-box').removeChild(item)
+        );
+      });
+    </script>
+    <script src="./index.js" type="module"></script>
+  </body>
 </html>

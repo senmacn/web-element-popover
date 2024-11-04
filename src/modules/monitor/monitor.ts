@@ -1,3 +1,7 @@
+import { GlobalConfig } from '@/config/config';
+import { NodeChangeType } from '@/config/global';
+import { shouldProcessNode } from '@/utils/filter';
+
 class Monitor {
   config = {};
   target: HTMLElement;
@@ -7,9 +11,10 @@ class Monitor {
   records: Map<HTMLElement, NodeChangeType> = new Map();
 
   constructor(target: HTMLElement, globalConfig: GlobalConfig) {
+    const _this = this;
     this.target = target;
     this.globalConfig = globalConfig;
-    this.observer = new MutationObserver(this.callback);
+    this.observer = new MutationObserver(this.callback.bind(_this));
   }
 
   // 当观察到变动时执行的回调函数
@@ -17,11 +22,20 @@ class Monitor {
     for (let mutation of mutations) {
       if (mutation.type === 'attributes') continue;
       else {
+        const rules = this.globalConfig.rules;
         if (mutation.addedNodes.length > 0) {
-          mutation.addedNodes.forEach((node) => this.records.set(node as HTMLElement, 'added'));
+          mutation.addedNodes.forEach((node) => {
+            if (shouldProcessNode(node as HTMLElement, rules?.include, rules?.exclude)) {
+              this.records.set(node as HTMLElement, 'added');
+            }
+          });
         }
         if (mutation.removedNodes.length > 0) {
-          mutation.removedNodes.forEach((node) => this.records.set(node as HTMLElement, 'removed'));
+          mutation.removedNodes.forEach((node) => {
+            if (shouldProcessNode(node as HTMLElement, rules?.include, rules?.exclude)) {
+              this.records.set(node as HTMLElement, 'removed');
+            }
+          });
         }
       }
     }
