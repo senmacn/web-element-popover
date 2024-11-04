@@ -14,7 +14,8 @@
       "import": "./dist/lib.es",
       "require": "./dist/lib.umd"
     },
-    "./README.md": "./README.md"
+    "./README.md": "./README.md",
+    "./style.css": "./dist/index.css"
   },
   "scripts": {
     "demo": "cross-env BASE_ENV=development vite",
@@ -24,7 +25,8 @@
     "publish": "npm publish --registry https://registry.npmjs.org"
   },
   "author": "senmacn",
-  "license": "ISC",
+  "license": "MIT",
+  "private": "false",
   "devDependencies": {
     "cross-env": "^7.0.3",
     "eslint": "^9.13.0",

@@ -18,7 +18,12 @@ function createPopover(
 ) {
   let instance;
   const _options = Object.assign(
-    { trigger: options?.trigger || 'hover', allowHTML: true, arrow: true, delay: [100, 100] as [number, number] },
+    {
+      trigger: options?.trigger || 'hover',
+      allowHTML: true,
+      arrow: true,
+      delay: [100, 100] as [number, number],
+    },
     options
   );
   if (typeof content === 'string') {
@@ -45,10 +50,6 @@ function createPopover(
   return instance;
 }
 
-function executeFindElement(key: string) {
-  return `<span class=${PopoverKey} ${PopoverKeyData}=${key}>${key}</span>`;
-}
-
 function getTriggerEvent(trigger: string) {
   if (trigger === 'click') return 'click';
   if (trigger === 'hover') return 'mouseover';
@@ -64,16 +65,23 @@ const excludeItems = [
 function Popover({
   trigger = 'click',
   content,
+  bindClasses,
 }: {
   trigger: 'click' | 'hover';
   content: ContentType;
+  bindClasses?: string | string[];
 }) {
   let popoverListener: any;
   let popoverMouseLeaveListener: any;
   let currentInstance: any;
   return {
     init(globalConfig: GlobalConfig) {
-      globalConfig.executeFunc = executeFindElement;
+      globalConfig.executeFunc = (key: string) => {
+        const _bindClasses =
+          bindClasses && Array.isArray(bindClasses) ? bindClasses.join(' ') : bindClasses || '';
+        return `<span class=${PopoverKey + ' ' + _bindClasses} ${PopoverKeyData}=${key}>${key}</span>`;
+      };
+
       if (globalConfig.rules && globalConfig.rules.exclude) {
         globalConfig.rules.exclude = globalConfig.rules.exclude.concat(excludeItems);
       } else {
