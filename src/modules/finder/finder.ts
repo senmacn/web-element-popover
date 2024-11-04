@@ -40,7 +40,8 @@ class Finder {
   
       const matches: string[] = [];
       for (const key of this.globalConfig.keys) {
-        if (text.includes(key)) {
+        const regex = new RegExp(`\\b${key}\\b`, 'gi');
+        if (regex.test(text)) {
           matches.push(key);
         }
       }

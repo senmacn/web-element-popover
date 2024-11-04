@@ -1,4 +1,5 @@
 import { GlobalConfig } from '@/config/config';
+import { WPlugin } from '@/config/global';
 import tippy from 'tippy.js';
 import 'tippy.js/dist/tippy.css';
 
@@ -41,7 +42,8 @@ function createPopover(
             instance.setContent(str);
           })
           .catch((error) => {
-            instance.setContent('Request failed.');
+            console.error(`Failed to get async content: ${error}`);
+            instance.setContent(options?.defaultContent || '');
           });
       },
       ..._options,
@@ -62,6 +64,19 @@ const excludeItems = [
   { func: (ele: any) => !!ele._tippy || ele.id.includes('tippy-') },
 ];
 
+/**
+ * Content Example:
+ *  <div data-tippy-root>
+ *    <div class="tippy-box" data-placement="top">
+ *      <div class="tippy-content">
+ *        My content
+ *      </div>
+ *    </div>
+ *  </div>
+ *
+ * indClasses Example:
+ *  <span class=${PopoverKey + ' ' + _bindClasses} ${PopoverKeyData}=${key}>${key}</span>
+ */
 function Popover({
   trigger = 'click',
   content,
@@ -70,51 +85,46 @@ function Popover({
   trigger: 'click' | 'hover';
   content: ContentType;
   bindClasses?: string | string[];
-}) {
-  let popoverListener: any;
-  let popoverMouseLeaveListener: any;
-  let currentInstance: any;
+}): WPlugin {
+  let currentInstance: any = null;
+
+  const handlePopoverEvent = (event: MouseEvent) => {
+    const target = event.target as HTMLElement;
+    if (target.classList.contains(PopoverKey)) {
+      const keyData = target.getAttribute(PopoverKeyData) || '';
+      currentInstance = createPopover(target, keyData, content, { trigger });
+      currentInstance?.show();
+    }
+  };
+
+  const handleMouseLeave = (event: MouseEvent) => {
+    const target = event.target as HTMLElement;
+    if (target.classList.contains(PopoverKey)) {
+      if ((target as any)._tippy?.destroy) {
+        (target as any)._tippy.destroy();
+      }
+      currentInstance?.destroy();
+      currentInstance = null
+    }
+  };
   return {
     init(globalConfig: GlobalConfig) {
       globalConfig.executeFunc = (key: string) => {
-        const _bindClasses =
-          bindClasses && Array.isArray(bindClasses) ? bindClasses.join(' ') : bindClasses || '';
-        return `<span class=${PopoverKey + ' ' + _bindClasses} ${PopoverKeyData}=${key}>${key}</span>`;
+        const _bindClasses = Array.isArray(bindClasses) ? bindClasses.join(' ') : bindClasses || '';
+        return `<span class="${PopoverKey} ${_bindClasses}" ${PopoverKeyData}="${key}">${key}</span>`;
       };
 
-      if (globalConfig.rules && globalConfig.rules.exclude) {
-        globalConfig.rules.exclude = globalConfig.rules.exclude.concat(excludeItems);
-      } else {
-        globalConfig.rules = {
-          ...globalConfig.rules,
-          exclude: [...excludeItems],
-        };
-      }
-      popoverListener = (event: MouseEvent) => {
-        if ((event.target as HTMLElement).classList.contains(PopoverKey)) {
-          const keyData = (event.target as HTMLElement).getAttribute(PopoverKeyData) || '';
-          currentInstance = createPopover(event.target as HTMLElement, keyData, content, {
-            trigger: trigger,
-          });
-          currentInstance?.show();
-        }
+      globalConfig.rules = {
+        ...globalConfig.rules,
+        exclude: [...(globalConfig.rules?.exclude || []), ...excludeItems],
       };
-      popoverMouseLeaveListener = (event: any) => {
-        if ((event.target as HTMLElement).classList.contains(PopoverKey)) {
-          if (event.target._tippy) {
-            event.target._tippy.destroy && event.target._tippy.destroy();
-          }
-          if (currentInstance) {
-            currentInstance.destroy();
-          }
-        }
-      };
-      document.body.addEventListener(getTriggerEvent(trigger), popoverListener);
-      document.body.addEventListener('mouseleave', popoverMouseLeaveListener, true);
+
+      document.body.addEventListener(getTriggerEvent(trigger), handlePopoverEvent);
+      document.body.addEventListener('mouseleave', handleMouseLeave, true);
     },
     destroy() {
-      document.body.removeEventListener(getTriggerEvent(trigger), popoverListener);
-      document.body.removeEventListener('mouseleave', popoverMouseLeaveListener, true);
+      document.body.removeEventListener(getTriggerEvent(trigger), handlePopoverEvent);
+      document.body.removeEventListener('mouseleave', handleMouseLeave, true);
     },
   };
 }

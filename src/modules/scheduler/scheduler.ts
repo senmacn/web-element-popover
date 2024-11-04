@@ -1,13 +1,16 @@
 import Monitor from '../monitor';
 import Finder from '../finder';
 import { GlobalConfig } from '@/config/config';
+import { NodeChangeType } from '@/config/global';
 
 class Scheduler {
   globalConfig: GlobalConfig;
   monitor: Monitor;
   finder: Finder;
-  running: boolean = false;
-  timer: any;
+  private running: boolean = false;
+  private timer: any;
+  private maxRetries = 5;
+  private retryCount = 0;
 
   constructor(monitor: Monitor, finder: Finder, globalConfig: GlobalConfig) {
     this.monitor = monitor;
@@ -16,27 +19,36 @@ class Scheduler {
   }
 
   schedule() {
+    if (this.timer) clearTimeout(this.timer);
+
     this.timer = setTimeout(() => {
-      if (!this.monitor?.observing) {
-        this.continueSchedule();
-        return;
-      }
+      try {
+        if (!this.monitor?.observing) {
+          this.checkContinueSchedule();
+          return;
+        }
 
-      const records = this.monitor.getRecords();
-      
-      if (!records || records.size === 0) {
-        this.continueSchedule();
-        return;
-      }
+        const records = this.monitor.transferRecords();
 
-      this.processRecords(records);
-      this.continueSchedule();
-    }, 500);
+        if (!records || records.size === 0) {
+          this.checkContinueSchedule();
+          return;
+        }
+
+        this.processRecords(records);
+        this.retryCount = 0;
+      } catch (error) {
+        console.error('Error in schedule:', error);
+        this.handleScheduleError();
+      } finally {
+        this.checkContinueSchedule();
+      }
+    }, this.globalConfig.interval || 500);
   }
 
-  private processRecords(records: Map<HTMLElement, string>) {
+  private processRecords(records: Map<HTMLElement, NodeChangeType>) {
     for (const [element, type] of records.entries()) {
-      if (type !== 'added') continue;
+      if (type !== NodeChangeType.ADD) continue;
 
       const findResults = this.finder.findInDom(element);
       this.updateNodes(findResults);
@@ -56,7 +68,18 @@ class Scheduler {
     });
   }
 
-  private continueSchedule() {
+  private handleScheduleError() {
+    this.retryCount++;
+    if (this.retryCount < this.maxRetries) {
+      console.warn(`Retrying schedule... Attempt ${this.retryCount} of ${this.maxRetries}`);
+      this.checkContinueSchedule();
+    } else {
+      console.error(`Max retries (${this.maxRetries}) reached. Stopping scheduler.`);
+      this.end();
+    }
+  }
+
+  private checkContinueSchedule() {
     if (this.running) {
       this.schedule();
     }
@@ -75,6 +98,7 @@ class Scheduler {
     if (this.timer) {
       clearTimeout(this.timer);
     }
+    this.retryCount = 0;
   }
 
   destroy() {
@@ -82,6 +106,7 @@ class Scheduler {
       clearTimeout(this.timer);
       this.timer = null;
     }
+    this.retryCount = 0;
     this.running = false;
     this.monitor.end();
     this.monitor.destroy();

@@ -21,25 +21,27 @@ class Monitor {
   private callback(mutations: MutationRecord[], _observer: MutationObserver) {
     for (let mutation of mutations) {
       if (mutation.type === 'attributes') continue;
-      else {
-        const rules = this.globalConfig.rules;
-        if (mutation.addedNodes.length > 0) {
-          mutation.addedNodes.forEach((node) => {
-            if (shouldProcessNode(node as HTMLElement, rules?.include, rules?.exclude)) {
-              this.records.set(node as HTMLElement, 'added');
-            }
-          });
-        }
-        if (mutation.removedNodes.length > 0) {
-          mutation.removedNodes.forEach((node) => {
-            if (shouldProcessNode(node as HTMLElement, rules?.include, rules?.exclude)) {
-              this.records.set(node as HTMLElement, 'removed');
-            }
-          });
-        }
+
+      if (mutation.addedNodes.length > 0) {
+        this.processNodes(mutation.addedNodes, NodeChangeType.ADD);
+      }
+
+      if (mutation.removedNodes.length > 0) {
+        this.processNodes(mutation.removedNodes, NodeChangeType.REMOVE);
       }
     }
   }
+
+  private processNodes = (nodes: NodeList, changeType: NodeChangeType) => {
+    for (let i = 0; i < nodes.length; i++) {
+      const node = nodes[i] as HTMLElement;
+      if (
+        shouldProcessNode(node, this.globalConfig.rules?.include, this.globalConfig.rules?.exclude)
+      ) {
+        this.records.set(node, changeType);
+      }
+    }
+  };
 
   start() {
     this.observer.observe(this.target, { childList: true, subtree: true });
@@ -51,7 +53,8 @@ class Monitor {
     this.observing = false;
   }
 
-  getRecords(): Map<HTMLElement, NodeChangeType> {
+  transferRecords(): Map<HTMLElement, NodeChangeType> | null {
+    if (this.records.size === 0) return null;
     const _records = this.records;
     this.records = new Map();
     return _records;

@@ -3,24 +3,18 @@ import Finder from './modules/finder';
 import Monitor from './modules/monitor';
 import Scheduler from './modules/scheduler';
 import Popover from './plugins/popover';
-import { GlobalConfig } from '@/config/config';
-
-const defaultConfig: GlobalConfig = {
-  rules: {
-    include: [],
-    exclude: [],
-  },
-  keys: [],
-};
+import { defaultConfig, GlobalConfig } from '@/config/config';
 
 function setup(target: HTMLElement, globalConfig: GlobalConfig, plugins: WPlugin[]) {
   globalConfig = Object.assign({}, defaultConfig, globalConfig);
-  const monitor = new Monitor(target, globalConfig);
-  const finder = new Finder({}, globalConfig);
-  const scheduler = new Scheduler(monitor, finder, globalConfig);
+
   plugins.forEach((plugin) => {
     plugin.init(globalConfig);
   });
+
+  const monitor = new Monitor(target, globalConfig);
+  const finder = new Finder({}, globalConfig);
+  const scheduler = new Scheduler(monitor, finder, globalConfig);
 
   return {
     start() {

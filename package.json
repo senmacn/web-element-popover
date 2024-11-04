@@ -1,6 +1,6 @@
 {
   "name": "web-element-popover",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "description": "The auto popover solution for the web",
   "type": "module",
   "main": "./dist/lib.umd.js",
@@ -26,7 +26,6 @@
   },
   "author": "senmacn",
   "license": "MIT",
-  "private": "false",
   "devDependencies": {
     "cross-env": "^7.0.3",
     "eslint": "^9.13.0",
