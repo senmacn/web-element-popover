@@ -4,32 +4,53 @@ import Monitor from './modules/monitor';
 import Scheduler from './modules/scheduler';
 import Popover from './plugins/popover';
 import { defaultConfig, GlobalConfig } from '@/config/config';
+import deepMerge from './utils/deepMerge';
 
 function setup(target: HTMLElement, globalConfig: GlobalConfig, plugins: WPlugin[]) {
-  globalConfig = Object.assign({}, defaultConfig, globalConfig);
+  if (!target || !(target instanceof HTMLElement)) {
+    throw new Error('Invalid target element');
+  }
 
-  plugins.forEach((plugin) => {
-    plugin.init(globalConfig);
-  });
+  const mergedConfig: GlobalConfig = deepMerge(defaultConfig, globalConfig);
 
-  const monitor = new Monitor(target, globalConfig);
-  const finder = new Finder({}, globalConfig);
-  const scheduler = new Scheduler(monitor, finder, globalConfig);
+  let monitor: Monitor | null = null;
+  let finder: Finder | null = null;
+  let scheduler: Scheduler | null = null;
 
-  return {
-    start() {
-      scheduler.start();
-    },
-    end() {
-      scheduler.end();
-    },
-    destroy() {
-      monitor.destroy();
-      finder.destroy();
-      scheduler.destroy();
-      plugins.forEach((plugin) => plugin.destroy());
-    },
-  };
+  try {
+    plugins.forEach((plugin) => {
+      if (typeof plugin.init === 'function') {
+        plugin.init(mergedConfig);
+      }
+    });
+
+    monitor = new Monitor(target, mergedConfig);
+    finder = new Finder({}, mergedConfig);
+    scheduler = new Scheduler(monitor, finder, mergedConfig);
+
+    return {
+      start() {
+        scheduler?.start();
+      },
+      end() {
+        scheduler?.end();
+      },
+      destroy() {
+        monitor?.destroy();
+        finder?.destroy();
+        scheduler?.destroy();
+        plugins.forEach((plugin) => {
+          if (typeof plugin.destroy === 'function') {
+            plugin.destroy();
+          }
+        });
+        monitor = finder = scheduler = null;
+      },
+    };
+  } catch (error) {
+    console.error('Error during setup:', error);
+    throw error;
+  }
 }
 
 export type { GlobalConfig, WPlugin };

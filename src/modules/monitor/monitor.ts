@@ -33,10 +33,22 @@ class Monitor {
       if (mutation.removedNodes.length > 0) {
         this.processNodes(mutation.removedNodes, NodeChangeType.REMOVE);
       }
+      if (mutation.type === 'characterData') {
+        this.processNodes(mutation.addedNodes, NodeChangeType.ADD);
+      }
     }
   }
 
   private processNodes = (nodes: NodeList, changeType: NodeChangeType) => {
+    // 如果是 REMOVE 可以直接判断是否更新记录
+    if (changeType === NodeChangeType.REMOVE) {
+      nodes.forEach((node) => {
+        if (this.records.has(<HTMLElement>node)) {
+          this.records.set(<HTMLElement>node , changeType)
+        }
+      });
+      return;
+    }
     for (let i = 0; i < nodes.length; i++) {
       const node = nodes[i] as HTMLElement;
       if (

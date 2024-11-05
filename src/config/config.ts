@@ -2,15 +2,17 @@
  * 表示网页元素弹出框的全局配置。
  */
 export interface GlobalConfig {
+    /**
+   * 配置中使用的键数组。
+   */
+    keys: string[];
+
   /**
    * 可选的元素选择规则。
    */
   rules?: ElementSelectionRules;
 
-  /**
-   * 配置中使用的键数组。
-   */
-  keys: string[];
+  ignoreCase?: boolean;
 
   /**
    * 可选的周期性操作间隔值（以毫秒为单位）。
@@ -30,6 +32,7 @@ export const defaultConfig: GlobalConfig = {
     include: [],
     exclude: [],
   },
+  ignoreCase: false,
   keys: [],
 };
 

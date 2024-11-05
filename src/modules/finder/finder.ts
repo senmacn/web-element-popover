@@ -3,60 +3,101 @@ import type { FindConfig } from './type';
 import { GlobalConfig } from '@/config/config';
 
 class Finder {
-  config: FindConfig = {};
-  globalConfig: GlobalConfig;
+  private config: FindConfig = {};
+  private globalConfig: GlobalConfig;
+  private regexCache: Map<string, RegExp>;
 
   constructor(config: FindConfig, globalConfig: GlobalConfig) {
+    if (!globalConfig || !globalConfig.keys) {
+      throw new Error('Invalid global configuration');
+    }
     this.config = { ...config };
     this.globalConfig = globalConfig;
+    this.regexCache = new Map();
   }
 
   findInDom(node: HTMLElement) {
     const result: Map<HTMLElement, string[]> = new Map();
-    const treeWalker = document.createTreeWalker(
-      node,
-      NodeFilter.SHOW_TEXT,
-      {
-        acceptNode: (node) => {
-          // TODO: 对于popover的筛选还不太好
-          if (node.parentElement && shouldProcessNode(
-            node.parentElement,
-            this.globalConfig.rules?.include,
-            this.globalConfig.rules?.exclude
-          )) {
-            return NodeFilter.FILTER_ACCEPT;
-          }
-          return NodeFilter.FILTER_REJECT;
-        }
+    try {
+      const nodeIterator = document.createNodeIterator(node, NodeFilter.SHOW_ELEMENT, {
+        acceptNode: this.acceptNode.bind(this),
+      });
+
+      let currentNode;
+      while ((currentNode = nodeIterator.nextNode() as HTMLElement)) {
+        this.processElement(currentNode, result);
       }
-    );
-  
-    while (treeWalker.nextNode()) {
-      const textNode = treeWalker.currentNode as Text;
-      const parentElement = textNode.parentElement as HTMLElement;
-      const text = textNode.textContent?.trim();
-  
-      if (!text) continue;
-  
-      const matches: string[] = [];
-      for (const key of this.globalConfig.keys) {
-        const regex = new RegExp(`\\b${key}\\b`, 'gi');
-        if (regex.test(text)) {
-          matches.push(key);
-        }
-      }
-  
-      if (matches.length > 0) {
-        if (result.has(parentElement)) {
-          const existingMatches = result.get(parentElement)!;
-          matches.forEach(match => existingMatches.push(match));
-        } else {
-          result.set(parentElement, matches);
-        }
+    } catch (error) {
+      console.error('Error in findInDom:', error);
+    }
+
+    return result;
+  }
+
+  private acceptNode(node: Node): number {
+    if (node.nodeType === Node.ELEMENT_NODE) {
+      if (
+        shouldProcessNode(
+          node as HTMLElement,
+          this.globalConfig.rules?.include,
+          this.globalConfig.rules?.exclude
+        )
+      ) {
+        return NodeFilter.FILTER_ACCEPT;
       }
     }
-  
-    return result;
+    return NodeFilter.FILTER_SKIP;
+  }
+
+  private processElement(element: HTMLElement, result: Map<HTMLElement, string[]>) {
+    for (let child of element.childNodes) {
+      if (child.nodeType === Node.TEXT_NODE) {
+        this.processTextNode(child as Text, result);
+      }
+    }
+  }
+
+  private processTextNode(textNode: Text, result: Map<HTMLElement, string[]>) {
+    const parentElement = textNode.parentElement as HTMLElement;
+    const text = textNode.textContent?.trim();
+
+    if (!text) return;
+
+    const matches = this.findMatches(text);
+
+    if (matches.length > 0) {
+      this.updateResult(parentElement, matches, result);
+    }
+  }
+
+  private findMatches(text: string): string[] {
+    const processedText = this.globalConfig.ignoreCase ? text.toLowerCase() : text;
+    return this.globalConfig.keys.filter(key => {
+      if (key === processedText) return true;
+      const regex = this.getOrCreateRegex(key);
+      return regex.test(processedText);
+    });
+  }
+
+  private getOrCreateRegex(key: string): RegExp {
+    if (!this.regexCache.has(key)) {
+      const flags = this.globalConfig.ignoreCase ? 'gi' : 'g';
+      this.regexCache.set(key, new RegExp(`\\b${key}\\b`, flags));
+    }
+    return this.regexCache.get(key)!;
+  }
+
+  private updateResult(
+    element: HTMLElement,
+    matches: string[],
+    result: Map<HTMLElement, string[]>
+  ) {
+    if (result.has(element)) {
+      const existingMatches = result.get(element)!;
+      matches.forEach((match) => existingMatches.push(match));
+    } else {
+      result.set(element, matches);
+    }
   }
 
   findInText() {}
@@ -64,6 +105,7 @@ class Finder {
   destroy() {
     this.config = null as any;
     this.globalConfig = null as any;
+    this.regexCache = null as any;
   }
 }
 

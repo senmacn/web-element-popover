@@ -14,9 +14,10 @@ export function shouldProcessNode(
   exclude?: SelectionRule[]
 ): boolean {
   if (element.nodeType !== 1) return true;
-  if (include && include.length > 0) {
-    return include.some((rule) => matchesRule(element, rule));
-  }
+  // TODO: include存在问题，上层节点include，无法在下层节点判断
+  // if (include && include.length > 0) {
+  //   return include.some((rule) => matchesRule(element, rule));
+  // }
   if (exclude && exclude.length > 0) {
     return !exclude.some((rule) => matchesRule(element, rule));
   }
