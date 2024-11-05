@@ -3,6 +3,7 @@ import { WPlugin } from '@/config/global';
 import { PopoverKey, PopoverBoxKey, PopoverKeyData, ContentType, PopoverProps, excludeItems } from './constants';
 import { createPopover, getTriggerEvent } from './utils';
 import { Instance } from 'tippy.js';
+import 'tippy.js/dist/tippy.css';
 
 function Popover({
   trigger = 'click',

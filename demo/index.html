@@ -5,38 +5,41 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Document</title>
   </head>
-  <link rel="stylesheet" href="../dist/index.css">
+  <link rel="stylesheet" href="../dist/index.css" />
   <style>
-    #options {
-      width: 100%;
-      display: flex;
-      justify-content: center;
-      gap: 50px;
-    }
     #display-box {
       width: 500px;
       height: 500px;
       margin: 0 auto;
-      margin-top: 10px;
+      margin-top: 30px;
       border: 1px solid black;
     }
-    #display-box div {
+    #display-box > div {
       padding: 10px;
+    }
+    #options {
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      margin: 30px auto;
     }
     .tippy-tippy {
       text-decoration: underline;
     }
   </style>
   <body>
+    <div id="display-box">
+      <div>
+        Change Value: 
+        <span id="key2">keyX</sp>
+      </div>
+    </div>
     <div id="options">
       <button class="key1-add">添加Key1</button>
       <button class="key1-delete">删除Key1</button>
-      <button class="key2-add">添加Key2</button>
-      <button class="key2-delete">删除Key2</button>
-      <button class="key3-add">添加Key3</button>
-      <button class="key3-delete">删除Key3</button>
+      <button class="key2-change">修改文本</button>
     </div>
-    <div id="display-box"></div>
     <script>
       document.getElementsByClassName('key1-add')[0].addEventListener('click', () => {
         const item = document.createElement('div');
@@ -49,27 +52,8 @@
           document.getElementById('display-box').removeChild(item)
         );
       });
-      document.getElementsByClassName('key2-add')[0].addEventListener('click', () => {
-        const item = document.createElement('div');
-        item.innerHTML = 'key2';
-        item.className = 'key2';
-        document.getElementById('display-box').append(item);
-      });
-      document.getElementsByClassName('key2-delete')[0].addEventListener('click', () => {
-        Array.from(document.getElementsByClassName('key2')).forEach((item) =>
-          document.getElementById('display-box').removeChild(item)
-        );
-      });
-      document.getElementsByClassName('key3-add')[0].addEventListener('click', () => {
-        const item = document.createElement('div');
-        item.innerHTML = 'key3';
-        item.className = 'key3';
-        document.getElementById('display-box').append(item);
-      });
-      document.getElementsByClassName('key3-delete')[0].addEventListener('click', () => {
-        Array.from(document.getElementsByClassName('key3')).forEach((item) =>
-          document.getElementById('display-box').removeChild(item)
-        );
+      document.getElementsByClassName('key2-change')[0].addEventListener('click', () => {
+        document.getElementById('key2').innerHTML = `key${Math.ceil(Math.random(0, 1) * 10)}`;
       });
     </script>
     <script src="./index.ts" type="module"></script>

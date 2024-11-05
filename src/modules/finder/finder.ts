@@ -19,6 +19,10 @@ class Finder {
   findInDom(node: HTMLElement) {
     const result: Map<HTMLElement, string[]> = new Map();
     try {
+      if (node instanceof Text) {
+        this.processTextNode(node, result);
+      }
+
       const nodeIterator = document.createNodeIterator(node, NodeFilter.SHOW_ELEMENT, {
         acceptNode: this.acceptNode.bind(this),
       });
@@ -72,7 +76,7 @@ class Finder {
 
   private findMatches(text: string): string[] {
     const processedText = this.globalConfig.ignoreCase ? text.toLowerCase() : text;
-    return this.globalConfig.keys.filter(key => {
+    return this.globalConfig.keys.filter((key) => {
       if (key === processedText) return true;
       const regex = this.getOrCreateRegex(key);
       return regex.test(processedText);
