@@ -2,30 +2,36 @@ import { GlobalConfig } from '@/config/config';
 import { WPlugin } from '@/config/global';
 import tippy from 'tippy.js';
 import 'tippy.js/dist/tippy.css';
+import { Props as TippyProps } from 'tippy.js';
 
 const PopoverKey = 'tippy-tippy';
+const PopoverBoxKey = 'tippy-box';
 const PopoverKeyData = 'tippy-data';
 
 type ContentType = string | ((keyData: string) => Promise<string>);
+
+type PopoverProps = {
+  defaultContent?: string;
+  trigger?: string;
+  interactive?: boolean;
+} & Partial<TippyProps>;
 
 function createPopover(
   element: HTMLElement,
   keyData: string,
   content: ContentType,
-  options?: {
-    defaultContent?: string;
-    trigger?: string;
-  }
+  options?: PopoverProps
 ) {
   let instance;
   const _options = Object.assign(
     {
-      trigger: options?.trigger || 'hover',
       allowHTML: true,
       arrow: true,
-      delay: [100, 100] as [number, number],
+      interactive: true,
+      delay: [150, 300] as [number, number],
     },
-    options
+    options || {},
+    { trigger: options?.trigger || 'hover' }
   );
   if (typeof content === 'string') {
     instance = tippy(element, {
@@ -81,30 +87,31 @@ function Popover({
   trigger = 'click',
   content,
   bindClasses,
+  options,
 }: {
   trigger: 'click' | 'hover';
   content: ContentType;
   bindClasses?: string | string[];
+  options?: PopoverProps;
 }): WPlugin {
   let currentInstance: any = null;
 
   const handlePopoverEvent = (event: MouseEvent) => {
     const target = event.target as HTMLElement;
     if (target.classList.contains(PopoverKey)) {
+      if (currentInstance && currentInstance.destroy) {
+        currentInstance?.destroy();
+      }
       const keyData = target.getAttribute(PopoverKeyData) || '';
-      currentInstance = createPopover(target, keyData, content, { trigger });
+      currentInstance = createPopover(target, keyData, content, options && { ...options });
       currentInstance?.show();
     }
   };
 
   const handleMouseLeave = (event: MouseEvent) => {
     const target = event.target as HTMLElement;
-    if (target.classList.contains(PopoverKey)) {
-      if ((target as any)._tippy?.destroy) {
-        (target as any)._tippy.destroy();
-      }
-      currentInstance?.destroy();
-      currentInstance = null
+    if (target.classList.contains(PopoverBoxKey)) {
+      currentInstance.hide();
     }
   };
   return {

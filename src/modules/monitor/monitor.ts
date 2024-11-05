@@ -21,11 +21,15 @@ class Monitor {
   private callback(mutations: MutationRecord[], _observer: MutationObserver) {
     for (let mutation of mutations) {
       if (mutation.type === 'attributes') continue;
-
+      // TODO: 通用化
+      if (
+        (mutation.target as any)?.className.includes('tippy-content') ||
+        mutation.target?.parentElement?.className.includes('tippy-content')
+      )
+        continue;
       if (mutation.addedNodes.length > 0) {
         this.processNodes(mutation.addedNodes, NodeChangeType.ADD);
       }
-
       if (mutation.removedNodes.length > 0) {
         this.processNodes(mutation.removedNodes, NodeChangeType.REMOVE);
       }
