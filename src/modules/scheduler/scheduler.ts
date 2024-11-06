@@ -48,7 +48,7 @@ class Scheduler {
 
   private processRecords(records: Map<HTMLElement, NodeChangeType>) {
     for (const [element, type] of records.entries()) {
-      if (type !== NodeChangeType.ADD) continue;
+      if (type === NodeChangeType.REMOVE) continue;
 
       const findResults = this.finder.findInDom(element);
       this.updateNodes(findResults);

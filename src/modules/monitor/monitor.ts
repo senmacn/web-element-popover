@@ -27,14 +27,18 @@ class Monitor {
         mutation.target?.parentElement?.className.includes('tippy-content')
       )
         continue;
-      if (mutation.addedNodes.length > 0) {
-        this.processNodes(mutation.addedNodes, NodeChangeType.ADD);
+
+      if (mutation.type === 'childList') {
+        if (mutation.addedNodes.length > 0) {
+          this.processNodes(mutation.addedNodes, NodeChangeType.ADD);
+        }
+        if (mutation.removedNodes.length > 0) {
+          this.processNodes(mutation.removedNodes, NodeChangeType.REMOVE);
+        }
       }
-      if (mutation.removedNodes.length > 0) {
-        this.processNodes(mutation.removedNodes, NodeChangeType.REMOVE);
-      }
+
       if (mutation.type === 'characterData') {
-        this.processNodes(mutation.addedNodes, NodeChangeType.ADD);
+        this.processNodes(mutation.addedNodes, NodeChangeType.MODIFY);
       }
     }
   }
@@ -44,7 +48,7 @@ class Monitor {
     if (changeType === NodeChangeType.REMOVE) {
       nodes.forEach((node) => {
         if (this.records.has(<HTMLElement>node)) {
-          this.records.set(<HTMLElement>node , changeType)
+          this.records.set(<HTMLElement>node, changeType);
         }
       });
       return;
@@ -60,7 +64,7 @@ class Monitor {
   };
 
   start() {
-    this.observer.observe(this.target, { childList: true, subtree: true });
+    this.observer.observe(this.target, { childList: true, subtree: true, characterData: true });
     this.observing = true;
   }
 

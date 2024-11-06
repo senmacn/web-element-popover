@@ -1,8 +1,9 @@
 import { GlobalConfig } from './config';
 
 export enum NodeChangeType {
-  ADD = 'added',
-  REMOVE = 'removed',
+  ADD,
+  REMOVE,
+  MODIFY,
 }
 
 export interface WPlugin {
