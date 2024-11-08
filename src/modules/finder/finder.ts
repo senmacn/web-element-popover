@@ -6,6 +6,7 @@ class Finder {
   private config: FindConfig = {};
   private globalConfig: GlobalConfig;
   private regexCache: Map<string, RegExp>;
+  private resultMap: Map<HTMLElement, string[]>;
 
   constructor(config: FindConfig, globalConfig: GlobalConfig) {
     if (!globalConfig || !globalConfig.keys) {
@@ -14,13 +15,14 @@ class Finder {
     this.config = { ...config };
     this.globalConfig = globalConfig;
     this.regexCache = new Map();
+    this.resultMap = new Map();
   }
 
   findInDom(node: HTMLElement) {
-    const result: Map<HTMLElement, string[]> = new Map();
+    this.resultMap.clear();
     try {
       if (node instanceof Text) {
-        this.processTextNode(node, result);
+        this.processTextNode(node, this.resultMap);
       }
 
       const nodeIterator = document.createNodeIterator(node, NodeFilter.SHOW_ELEMENT, {
@@ -29,13 +31,13 @@ class Finder {
 
       let currentNode;
       while ((currentNode = nodeIterator.nextNode() as HTMLElement)) {
-        this.processElement(currentNode, result);
+        this.processElement(currentNode, this.resultMap);
       }
     } catch (error) {
       console.error('Error in findInDom:', error);
     }
 
-    return result;
+    return this.resultMap;
   }
 
   private acceptNode(node: Node): number {

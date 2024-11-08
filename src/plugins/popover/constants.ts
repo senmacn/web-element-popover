@@ -8,6 +8,7 @@ export type PopoverProps = {
   defaultContent?: string;
   trigger?: string;
   interactive?: boolean;
+  theme?: 'light' | 'material';
 } & Partial<import('tippy.js').Props>;
 
 export const excludeItems = [

@@ -10,7 +10,7 @@ export default defineConfig({
   build: {
     minify: 'esbuild',
     sourcemap: true,
-    cssCodeSplit: true,
+    cssCodeSplit: false,
     chunkSizeWarningLimit: 1000, // 提高警告阈值到 1000 KB
     rollupOptions: {
       input: isDev

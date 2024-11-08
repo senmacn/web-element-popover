@@ -1,8 +1,17 @@
 import { GlobalConfig } from '@/config/config';
 import { WPlugin } from '@/config/global';
-import { PopoverKey, PopoverBoxKey, PopoverKeyData, ContentType, PopoverProps, excludeItems } from './constants';
+import {
+  PopoverKey,
+  PopoverBoxKey,
+  PopoverKeyData,
+  ContentType,
+  PopoverProps,
+  excludeItems,
+} from './constants';
 import { createPopover, getTriggerEvent } from './utils';
 import { Instance } from 'tippy.js';
+import 'tippy.js/themes/light.css';
+import 'tippy.js/themes/material.css';
 import 'tippy.js/dist/tippy.css';
 
 function Popover({
@@ -17,24 +26,46 @@ function Popover({
   options?: PopoverProps;
 }): WPlugin {
   let currentInstance: Instance | null = null;
+  let currentTarget: HTMLElement | null = null;
+  let delayShowTimer: NodeJS.Timeout | null = null;
+  let delayHideTimer: NodeJS.Timeout | null = null;
+
+  const delayShow =
+    (options?.delay && (Array.isArray(options.delay) ? options.delay[0] : options.delay)) || 0;
+  const delayHide =
+    (options?.delay && (Array.isArray(options.delay) ? options.delay[1] : options.delay)) || 0;
 
   const handlePopoverEvent = (event: MouseEvent) => {
     const target = event.target as HTMLElement;
-    if (target.classList.contains(PopoverKey)) {
-      if (currentInstance && currentInstance.destroy) {
-        currentInstance?.destroy();
-      }
+    if (!target.classList.contains(PopoverKey)) return;
+
+    clearTimeout(delayHideTimer as NodeJS.Timeout);
+    delayHideTimer = null;
+
+    if (currentTarget !== target || !currentInstance) {
+      currentInstance?.destroy();
       const keyData = target.getAttribute(PopoverKeyData) || '';
-      currentInstance = createPopover(target, keyData, content, options && { ...options });
-      currentInstance?.show();
+      currentInstance = createPopover(target, keyData, content, { ...options });
+      currentTarget = target;
     }
+
+    delayShowTimer = setTimeout(() => {
+      currentInstance?.show();
+      delayShowTimer = null;
+    }, delayShow);
   };
 
   const handleMouseLeave = (event: MouseEvent) => {
     const target = event.target as HTMLElement;
-    if (target.classList.contains(PopoverBoxKey) || target.classList.contains(PopoverKey)) {
-      currentInstance && currentInstance?.hideWithInteractivity({} as any);
-    }
+    if (!target.classList.contains(PopoverBoxKey) && !target.classList.contains(PopoverKey)) return;
+
+    clearTimeout(delayShowTimer as NodeJS.Timeout);
+    delayShowTimer = null;
+
+    delayHideTimer = setTimeout(() => {
+      currentInstance?.hideWithInteractivity({} as any);
+      delayHideTimer = null;
+    }, delayHide);
   };
 
   return {
