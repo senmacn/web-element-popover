@@ -48,11 +48,12 @@ function Popover({
       currentInstance = createPopover(target, keyData, content, { ...options });
       currentTarget = target;
     }
-
-    delayShowTimer = setTimeout(() => {
-      currentInstance?.show();
-      delayShowTimer = null;
-    }, delayShow);
+    if (!delayShowTimer) {
+      delayShowTimer = setTimeout(() => {
+        currentInstance?.show();
+        delayShowTimer = null;
+      }, delayShow);
+    }
   };
 
   const handleMouseLeave = (event: MouseEvent) => {

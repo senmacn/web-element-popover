@@ -21,6 +21,10 @@ class Monitor {
   private callback(mutations: MutationRecord[], _observer: MutationObserver) {
     for (let mutation of mutations) {
       if (mutation.type === 'attributes') continue;
+      if (mutation.type === 'characterData') {
+        this.processNodes(mutation.target as any, NodeChangeType.MODIFY);
+        continue;
+      }
       // TODO: 通用化
       if (
         (mutation.target as any)?.className.includes('tippy-content') ||
@@ -35,10 +39,6 @@ class Monitor {
         if (mutation.removedNodes.length > 0) {
           this.processNodes(mutation.removedNodes, NodeChangeType.REMOVE);
         }
-      }
-
-      if (mutation.type === 'characterData') {
-        this.processNodes(mutation.addedNodes, NodeChangeType.MODIFY);
       }
     }
   }
