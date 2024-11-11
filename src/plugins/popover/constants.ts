@@ -8,10 +8,12 @@ export type PopoverProps = {
   defaultContent?: string;
   trigger?: string;
   interactive?: boolean;
-  theme?: 'light' | 'material';
 } & Partial<import('tippy.js').Props>;
 
 export const excludeItems = [
   { tag: 'span', class: PopoverKey },
-  { func: (ele: any) => !!ele._tippy || ele.id.includes('tippy-') },
+  {
+    func: (ele: any) =>
+      !!ele._tippy || ele.id.includes('tippy-') || ele.className.includes('tippy-'),
+  },
 ];

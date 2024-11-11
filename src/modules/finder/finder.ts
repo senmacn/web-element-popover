@@ -42,9 +42,16 @@ class Finder {
 
   private acceptNode(node: Node): number {
     if (node.nodeType === Node.ELEMENT_NODE) {
+      const element = node as HTMLElement;
+
+      // 排除 script, style 等标签
+      if (element.tagName.toLowerCase() === 'script' || element.tagName.toLowerCase() === 'style') {
+        return NodeFilter.FILTER_REJECT;
+      }
+
       if (
         shouldProcessNode(
-          node as HTMLElement,
+          element,
           this.globalConfig.rules?.include,
           this.globalConfig.rules?.exclude
         )
@@ -78,6 +85,16 @@ class Finder {
 
   private findMatches(text: string): string[] {
     const processedText = this.globalConfig.ignoreCase ? text.toLowerCase() : text;
+    const result = this.globalConfig.keys.filter((key) => {
+      if (key === processedText) return true;
+      const regex = this.getOrCreateRegex(key);
+      return regex.test(processedText);
+    });
+    const result1 = this.globalConfig.keys.filter((key) => {
+      if (key === processedText) return true;
+      const regex = this.getOrCreateRegex(key);
+      return regex.test(processedText);
+    });
     return this.globalConfig.keys.filter((key) => {
       if (key === processedText) return true;
       const regex = this.getOrCreateRegex(key);
@@ -87,7 +104,7 @@ class Finder {
 
   private getOrCreateRegex(key: string): RegExp {
     if (!this.regexCache.has(key)) {
-      const flags = this.globalConfig.ignoreCase ? 'gi' : 'g';
+      const flags = this.globalConfig.ignoreCase ? 'i' : '';
       this.regexCache.set(key, new RegExp(`\\b${key}\\b`, flags));
     }
     return this.regexCache.get(key)!;
@@ -105,8 +122,6 @@ class Finder {
       result.set(element, matches);
     }
   }
-
-  findInText() {}
 
   destroy() {
     this.config = null as any;

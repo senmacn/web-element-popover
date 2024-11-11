@@ -31,6 +31,11 @@
   <body>
     <div id="display-box">
       <div>
+        <div id="exclude"> 测试排除 id key1 </div>
+        <div class="exclude"> 测试排除 class key1 </div>
+        <div data-key="exclude"> 测试排除 func key1 </div>
+      </div>
+      <div>
         Change Value: 
         <span id="key2">keyX</sp>
       </div>
@@ -53,7 +58,7 @@
         );
       });
       document.getElementsByClassName('key2-change')[0].addEventListener('click', () => {
-        document.getElementById('key2').innerText = `key${Math.ceil(Math.random(0, 1) * 10)}`;
+        document.getElementById('key2').innerText = `key${Math.ceil(Math.random(0, 2) * 100)}`;
       });
     </script>
     <script src="./index.ts" type="module"></script>

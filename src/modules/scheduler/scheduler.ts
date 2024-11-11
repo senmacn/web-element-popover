@@ -16,34 +16,42 @@ class Scheduler {
     this.monitor = monitor;
     this.finder = finder;
     this.globalConfig = globalConfig;
+
+    if (globalConfig.leading) {
+      this.flush();
+    }
   }
 
   schedule() {
     if (this.timer) clearTimeout(this.timer);
 
     this.timer = setTimeout(() => {
-      try {
-        if (!this.monitor?.observing) {
-          this.checkContinueSchedule();
-          return;
-        }
-
-        const records = this.monitor.transferRecords();
-
-        if (!records || records.size === 0) {
-          this.checkContinueSchedule();
-          return;
-        }
-
-        this.processRecords(records);
-        this.retryCount = 0;
-      } catch (error) {
-        console.error('Error in schedule:', error);
-        this.handleScheduleError();
-      } finally {
-        this.checkContinueSchedule();
-      }
+      this.flush();
     }, this.globalConfig.interval || 500);
+  }
+
+  private flush() {
+    try {
+      if (!this.monitor?.observing) {
+        this.checkContinueSchedule();
+        return;
+      }
+
+      const records = this.monitor.transferRecords();
+
+      if (!records || records.size === 0) {
+        this.checkContinueSchedule();
+        return;
+      }
+
+      this.processRecords(records);
+      this.retryCount = 0;
+    } catch (error) {
+      console.error('Error in schedule:', error);
+      this.handleScheduleError();
+    } finally {
+      this.checkContinueSchedule();
+    }
   }
 
   private processRecords(records: Map<HTMLElement, NodeChangeType>) {

@@ -15,22 +15,20 @@ class Monitor {
     this.target = target;
     this.globalConfig = globalConfig;
     this.observer = new MutationObserver(this.callback.bind(_this));
+
+    if (globalConfig.leading) {
+      this.records.set(this.target, NodeChangeType.ADD)
+    }
   }
 
   // 当观察到变动时执行的回调函数
-  private callback(mutations: MutationRecord[], _observer: MutationObserver) {
+  private callback(mutations: MutationRecord[]) {
     for (let mutation of mutations) {
       if (mutation.type === 'attributes') continue;
       if (mutation.type === 'characterData') {
         this.processNodes(mutation.target as any, NodeChangeType.MODIFY);
         continue;
       }
-      // TODO: 通用化
-      if (
-        (mutation.target as any)?.className.includes('tippy-content') ||
-        mutation.target?.parentElement?.className.includes('tippy-content')
-      )
-        continue;
 
       if (mutation.type === 'childList') {
         if (mutation.addedNodes.length > 0) {

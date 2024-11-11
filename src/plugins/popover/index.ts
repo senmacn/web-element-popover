@@ -10,9 +10,6 @@ import {
 } from './constants';
 import { createPopover, getTriggerEvent } from './utils';
 import { Instance } from 'tippy.js';
-import 'tippy.js/themes/light.css';
-import 'tippy.js/themes/material.css';
-import 'tippy.js/dist/tippy.css';
 
 function Popover({
   trigger = 'click',
