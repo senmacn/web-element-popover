@@ -26,7 +26,7 @@ class Monitor {
     for (let mutation of mutations) {
       if (mutation.type === 'attributes') continue;
       if (mutation.type === 'characterData') {
-        this.processNodes(mutation.target as any, NodeChangeType.MODIFY);
+        this.processNodes([mutation.target] as any, NodeChangeType.MODIFY);
         continue;
       }
 

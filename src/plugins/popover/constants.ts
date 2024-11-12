@@ -13,7 +13,15 @@ export type PopoverProps = {
 export const excludeItems = [
   { tag: 'span', class: PopoverKey },
   {
-    func: (ele: any) =>
-      !!ele._tippy || ele.id.includes('tippy-') || ele.className.includes('tippy-'),
+    func: (ele: any) => {
+      if (ele instanceof HTMLElement) {
+        return (
+          !!(ele as any)._tippy ||
+          (ele.id && ele.id.includes('tippy-')) ||
+          ele.className.includes('tippy-')
+        );
+      }
+      return true;
+    },
   },
 ];
