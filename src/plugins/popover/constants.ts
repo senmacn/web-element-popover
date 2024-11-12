@@ -11,7 +11,7 @@ export type PopoverProps = {
 } & Partial<import('tippy.js').Props>;
 
 export const excludeItems = [
-  { tag: 'span', class: PopoverKey },
+  { class: PopoverKey },
   {
     func: (ele: any) => {
       if (ele instanceof HTMLElement) {

@@ -59,10 +59,12 @@ class Finder {
         return NodeFilter.FILTER_ACCEPT;
       }
     }
+
     return NodeFilter.FILTER_SKIP;
   }
 
   private processElement(element: HTMLElement, result: Map<HTMLElement, string[]>) {
+    // console.log(element);
     for (let child of element.childNodes) {
       if (child.nodeType === Node.TEXT_NODE) {
         this.processTextNode(child as Text, result);

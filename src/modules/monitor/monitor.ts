@@ -17,7 +17,7 @@ class Monitor {
     this.observer = new MutationObserver(this.callback.bind(_this));
 
     if (globalConfig.leading) {
-      this.records.set(this.target, NodeChangeType.ADD)
+      this.records.set(this.target, NodeChangeType.ADD);
     }
   }
 

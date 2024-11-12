@@ -13,7 +13,11 @@ document.body.onload = () => {
         exclude: [
           {
             class: 'exclude',
+          },
+          {
             id: 'exclude',
+          },
+          {
             func: (ele) => ele.getAttribute('data-key') === 'exclude',
           },
         ],
