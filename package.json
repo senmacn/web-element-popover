@@ -1,6 +1,6 @@
 {
   "name": "web-element-popover",
-  "version": "1.0.9",
+  "version": "1.0.10",
   "description": "The auto popover solution for the web",
   "type": "module",
   "main": "./dist/lib.umd.js",
