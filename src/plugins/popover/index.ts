@@ -4,6 +4,7 @@ import {
   PopoverKey,
   PopoverBoxKey,
   PopoverKeyData,
+  PopoverKeyClickEmitterClass,
   ContentType,
   PopoverProps,
   excludeItems,
@@ -15,13 +16,17 @@ function Popover({
   trigger = 'click',
   content,
   bindClasses,
+  keyRender,
   options,
 }: {
   trigger: 'click' | 'hover';
   content: ContentType;
   bindClasses?: string | string[];
+  keyRender?: (key: string) => boolean;
   options?: PopoverProps;
 }): WPlugin {
+  const defaultTrigger = getTriggerEvent(trigger);
+
   let currentInstance: Instance | null = null;
   let currentTarget: HTMLElement | null = null;
   let delayShowTimer: NodeJS.Timeout | null = null;
@@ -33,6 +38,7 @@ function Popover({
     (options?.delay && (Array.isArray(options.delay) ? options.delay[1] : options.delay)) || 0;
 
   const handlePopoverEvent = (event: MouseEvent) => {
+    if (defaultTrigger !== 'mouseover') return;
     const target = event.target as HTMLElement;
     if (!target.classList.contains(PopoverKey)) return;
 
@@ -53,6 +59,33 @@ function Popover({
     }
   };
 
+  const handleClickEvent = (event: MouseEvent) => {
+    const target = event.target as HTMLElement;
+    if (
+      defaultTrigger !== 'click' &&
+      (!target.className || !target.className.includes(PopoverKeyClickEmitterClass))
+    )
+      return;
+
+    clearTimeout(delayHideTimer as NodeJS.Timeout);
+    delayHideTimer = null;
+
+    if (currentTarget !== target || !currentInstance) {
+      currentInstance?.destroy();
+      const keyData = target.getAttribute(PopoverKeyData) || '';
+      currentInstance = createPopover(target, keyData, content, { ...options });
+      currentTarget = target;
+      currentInstance?.show();
+    } else {
+      currentInstance?.show();
+    }
+    event.stopPropagation();
+    event.preventDefault();
+
+    clearTimeout(delayShowTimer as NodeJS.Timeout);
+    delayShowTimer = null;
+  };
+
   const handleMouseLeave = (event: MouseEvent) => {
     const target = event.target as HTMLElement;
     if (!target.classList.contains(PopoverBoxKey) && !target.classList.contains(PopoverKey)) return;
@@ -70,7 +103,7 @@ function Popover({
     init(globalConfig: GlobalConfig) {
       globalConfig.executeFunc = (key: string) => {
         const _bindClasses = Array.isArray(bindClasses) ? bindClasses.join(' ') : bindClasses || '';
-        return `<span class="${PopoverKey} ${_bindClasses}" ${PopoverKeyData}="${key}">${key}</span>`;
+        return `<span class="${PopoverKey} ${_bindClasses}" ${PopoverKeyData}="${key}">${keyRender && keyRender(key) ? `${key}<span class="${PopoverKey} ${PopoverKeyClickEmitterClass}" ${PopoverKeyData}="${key}">?</span>` : key}</span>`;
       };
 
       globalConfig.rules = {
@@ -78,11 +111,13 @@ function Popover({
         exclude: [...(globalConfig.rules?.exclude || []), ...excludeItems],
       };
 
-      document.body.addEventListener(getTriggerEvent(trigger), handlePopoverEvent);
+      document.body.addEventListener('click', handleClickEvent);
+      document.body.addEventListener('mouseover', handlePopoverEvent);
       document.body.addEventListener('mouseleave', handleMouseLeave, true);
     },
     destroy() {
-      document.body.removeEventListener(getTriggerEvent(trigger), handlePopoverEvent);
+      document.body.addEventListener('click', handleClickEvent);
+      document.body.removeEventListener('mouseover', handlePopoverEvent);
       document.body.removeEventListener('mouseleave', handleMouseLeave, true);
     },
   };

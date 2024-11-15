@@ -22,7 +22,15 @@ class Finder {
     this.resultMap.clear();
     try {
       if (node instanceof Text) {
-        this.processTextNode(node, this.resultMap);
+        if (
+          shouldProcessNode(
+            node.parentElement!,
+            this.globalConfig.rules?.include,
+            this.globalConfig.rules?.exclude
+          )
+        ) {
+          this.processTextNode(node, this.resultMap);
+        }
       }
 
       const nodeIterator = document.createNodeIterator(node, NodeFilter.SHOW_ELEMENT, {
@@ -64,7 +72,6 @@ class Finder {
   }
 
   private processElement(element: HTMLElement, result: Map<HTMLElement, string[]>) {
-    // console.log(element);
     for (let child of element.childNodes) {
       if (child.nodeType === Node.TEXT_NODE) {
         this.processTextNode(child as Text, result);

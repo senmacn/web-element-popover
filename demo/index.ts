@@ -26,7 +26,12 @@ document.body.onload = () => {
     [
       Popover({
         trigger: 'hover',
+        keyRender: () => true,
+        // TODO: 这种情况存在tippy上再次tippy的问题
         content: async (key) => `<div>名称: ${key}</div>`,
+        options: {
+          delay: [2000, 1000],
+        },
       }),
     ]
   );

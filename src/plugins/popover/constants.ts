@@ -1,6 +1,7 @@
 export const PopoverKey = 'tippy-tippy';
 export const PopoverBoxKey = 'tippy-box';
 export const PopoverKeyData = 'tippy-data';
+export const PopoverKeyClickEmitterClass = 'tippy-click-emitter';
 
 export type ContentType = string | ((keyData: string) => Promise<string>);
 
@@ -12,6 +13,7 @@ export type PopoverProps = {
 
 export const excludeItems = [
   { class: PopoverKey },
+  { class: PopoverKeyClickEmitterClass },
   {
     func: (ele: any) => {
       if (ele instanceof HTMLElement) {
