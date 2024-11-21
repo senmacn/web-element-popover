@@ -2,6 +2,7 @@ import Monitor from '../monitor';
 import Finder from '../finder';
 import { GlobalConfig } from '@/config/config';
 import { NodeChangeType } from '@/config/global';
+import { ExecuteNode } from '../finder/finder';
 
 class Scheduler {
   globalConfig: GlobalConfig;
@@ -63,16 +64,26 @@ class Scheduler {
     }
   }
 
-  private updateNodes(findResults: Map<HTMLElement, string[]>) {
+  private updateNodes(findResults: Map<ExecuteNode, string[]>) {
     findResults.forEach((keys, node) => {
       if (!this.globalConfig.executeFunc) return;
 
-      const newInnerHTML = keys.reduce((html, key) => {
-        const replacement = this.globalConfig.executeFunc!(key);
-        return html.replaceAll(key, replacement);
-      }, node.innerHTML);
+      if (node instanceof Text) {
+        const newTextContent = keys.reduce((html, key) => {
+          const replacement = this.globalConfig.executeFunc!(key);
+          return html.replaceAll(key, replacement);
+        }, node.textContent || '');
+        debugger;
+        node.parentElement?.insertAdjacentHTML('afterbegin', newTextContent);
+        node.parentElement?.removeChild(node);
+      } else {
+        const newInnerHTML = keys.reduce((html, key) => {
+          const replacement = this.globalConfig.executeFunc!(key);
+          return html.replaceAll(key, replacement);
+        }, node.innerHTML);
 
-      node.innerHTML = newInnerHTML;
+        node.innerHTML = newInnerHTML;
+      }
     });
   }
 

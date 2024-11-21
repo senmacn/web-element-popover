@@ -40,10 +40,8 @@ function Popover({
   const handlePopoverEvent = (event: MouseEvent) => {
     if (defaultTrigger !== 'mouseover') return;
     const target = event.target as HTMLElement;
+    if (!(target instanceof HTMLElement)) return;
     if (!target.classList.contains(PopoverKey)) return;
-
-    clearTimeout(delayHideTimer as NodeJS.Timeout);
-    delayHideTimer = null;
 
     if (currentTarget !== target || !currentInstance) {
       currentInstance?.destroy();
@@ -52,23 +50,34 @@ function Popover({
       currentTarget = target;
     }
     if (!delayShowTimer) {
-      delayShowTimer = setTimeout(() => {
+      if (target.className.includes(PopoverKeyClickEmitterClass)) {
         currentInstance?.show();
-        delayShowTimer = null;
-      }, delayShow);
+      } else {
+        clearTimeout(delayHideTimer as NodeJS.Timeout);
+        delayHideTimer = null;
+
+        if (getComputedStyle(target).textDecorationLine === 'none') return;
+        delayShowTimer = setTimeout(() => {
+          currentInstance?.show();
+          delayShowTimer = null;
+        }, delayShow);
+      }
     }
   };
 
   const handleClickEvent = (event: MouseEvent) => {
     const target = event.target as HTMLElement;
-    if (
-      defaultTrigger !== 'click' &&
-      (!target.className || !target.className.includes(PopoverKeyClickEmitterClass))
-    )
-      return;
+    if (!(target instanceof HTMLElement)) return;
+    if (defaultTrigger !== 'click') return;
 
     clearTimeout(delayHideTimer as NodeJS.Timeout);
     delayHideTimer = null;
+
+    clearTimeout(delayShowTimer as NodeJS.Timeout);
+    delayShowTimer = null;
+
+    event.stopPropagation();
+    event.preventDefault();
 
     if (currentTarget !== target || !currentInstance) {
       currentInstance?.destroy();
@@ -79,15 +88,11 @@ function Popover({
     } else {
       currentInstance?.show();
     }
-    event.stopPropagation();
-    event.preventDefault();
-
-    clearTimeout(delayShowTimer as NodeJS.Timeout);
-    delayShowTimer = null;
   };
 
   const handleMouseLeave = (event: MouseEvent) => {
     const target = event.target as HTMLElement;
+    if (!(target instanceof HTMLElement)) return;
     if (!target.classList.contains(PopoverBoxKey) && !target.classList.contains(PopoverKey)) return;
 
     clearTimeout(delayShowTimer as NodeJS.Timeout);
@@ -103,7 +108,16 @@ function Popover({
     init(globalConfig: GlobalConfig) {
       globalConfig.executeFunc = (key: string) => {
         const _bindClasses = Array.isArray(bindClasses) ? bindClasses.join(' ') : bindClasses || '';
-        return `<span class="${PopoverKey} ${_bindClasses}" ${PopoverKeyData}="${key}">${keyRender && keyRender(key) ? `${key}<span class="${PopoverKey} ${PopoverKeyClickEmitterClass}" ${PopoverKeyData}="${key}">?</span>` : key}</span>`;
+        return `<span class="${PopoverKey} ${_bindClasses}" ${PopoverKeyData}="${key}">
+        ${
+          keyRender && keyRender(key)
+            ? `${key}
+          <span class="${PopoverKey} ${PopoverKeyClickEmitterClass}" ${PopoverKeyData}="${key}">
+          ?
+          </span>`
+            : key
+        }
+          </span>`;
       };
 
       globalConfig.rules = {
@@ -111,13 +125,15 @@ function Popover({
         exclude: [...(globalConfig.rules?.exclude || []), ...excludeItems],
       };
 
-      document.body.addEventListener('click', handleClickEvent);
-      document.body.addEventListener('mouseover', handlePopoverEvent);
+      defaultTrigger === 'click' && document.body.addEventListener('click', handleClickEvent, true);
+      defaultTrigger === 'mouseover' &&
+        document.body.addEventListener('mouseover', handlePopoverEvent, true);
       document.body.addEventListener('mouseleave', handleMouseLeave, true);
     },
     destroy() {
-      document.body.addEventListener('click', handleClickEvent);
-      document.body.removeEventListener('mouseover', handlePopoverEvent);
+      defaultTrigger === 'click' && document.body.addEventListener('click', handleClickEvent, true);
+      defaultTrigger === 'mouseover' &&
+        document.body.removeEventListener('mouseover', handlePopoverEvent, true);
       document.body.removeEventListener('mouseleave', handleMouseLeave, true);
     },
   };

@@ -26,6 +26,18 @@
     }
     .tippy-tippy {
       text-decoration: underline;
+      position: relative;
+    }
+    .tippy-click-emitter {
+      display: inline-block;
+      position: absolute;
+      top: 4px;
+      right: -16px; 
+      width: 14px; 
+      height: 14px;
+      font-size: 14px;
+      line-height: 10px; 
+      text-align: center; 
     }
   </style>
   <body>
@@ -49,6 +61,10 @@
       document.getElementsByClassName('key1-add')[0].addEventListener('click', () => {
         const item = document.createElement('div');
         item.innerHTML = '<span>key1</span>';
+        const button = document.createElement('button')
+        button.textContent = '测试点击'
+        button.addEventListener('click', () => alert('点击了'))
+        item.appendChild(button)
         item.className = 'key1';
         document.getElementById('display-box').append(item);
       });

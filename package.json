@@ -1,6 +1,6 @@
 {
   "name": "web-element-popover",
-  "version": "1.0.16",
+  "version": "1.0.25",
   "description": "The auto popover solution for the web",
   "type": "module",
   "main": "./dist/lib.umd.js",
@@ -17,7 +17,14 @@
     "./README.md": "./README.md",
     "./*": "./dist/*"
   },
-  "keywords": ["typescript", "javascript", "popover", "component", "ui", "frontend"],
+  "keywords": [
+    "typescript",
+    "javascript",
+    "popover",
+    "component",
+    "ui",
+    "frontend"
+  ],
   "scripts": {
     "demo": "cross-env BASE_ENV=development vite",
     "demo:logger": "cross-env BASE_ENV=development vite --mode logger",

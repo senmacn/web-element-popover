@@ -2,11 +2,13 @@ import { shouldProcessNode } from '@/utils/filter';
 import type { FindConfig } from './type';
 import { GlobalConfig } from '@/config/config';
 
+export type ExecuteNode = Text | HTMLElement;
+
 class Finder {
   private config: FindConfig = {};
   private globalConfig: GlobalConfig;
   private regexCache: Map<string, RegExp>;
-  private resultMap: Map<HTMLElement, string[]>;
+  private resultMap: Map<ExecuteNode, string[]>;
 
   constructor(config: FindConfig, globalConfig: GlobalConfig) {
     if (!globalConfig || !globalConfig.keys) {
@@ -29,7 +31,7 @@ class Finder {
             this.globalConfig.rules?.exclude
           )
         ) {
-          this.processTextNode(node, this.resultMap);
+          this.processTextNode(node);
         }
       }
 
@@ -39,7 +41,7 @@ class Finder {
 
       let currentNode;
       while ((currentNode = nodeIterator.nextNode() as HTMLElement)) {
-        this.processElement(currentNode, this.resultMap);
+        this.processElement(currentNode);
       }
     } catch (error) {
       console.error('Error in findInDom:', error);
@@ -71,15 +73,15 @@ class Finder {
     return NodeFilter.FILTER_SKIP;
   }
 
-  private processElement(element: HTMLElement, result: Map<HTMLElement, string[]>) {
+  private processElement(element: HTMLElement) {
     for (let child of element.childNodes) {
       if (child.nodeType === Node.TEXT_NODE) {
-        this.processTextNode(child as Text, result);
+        this.processTextNode(child as Text);
       }
     }
   }
 
-  private processTextNode(textNode: Text, result: Map<HTMLElement, string[]>) {
+  private processTextNode(textNode: Text) {
     const parentElement = textNode.parentElement as HTMLElement;
     const text = textNode.textContent?.trim();
 
@@ -88,7 +90,7 @@ class Finder {
     const matches = this.findMatches(text);
 
     if (matches.length > 0) {
-      this.updateResult(parentElement, matches, result);
+      this.updateResult(textNode, matches);
     }
   }
 
@@ -119,16 +121,12 @@ class Finder {
     return this.regexCache.get(key)!;
   }
 
-  private updateResult(
-    element: HTMLElement,
-    matches: string[],
-    result: Map<HTMLElement, string[]>
-  ) {
-    if (result.has(element)) {
-      const existingMatches = result.get(element)!;
+  private updateResult(element: Text | HTMLElement, matches: string[]) {
+    if (this.resultMap.has(element)) {
+      const existingMatches = this.resultMap.get(element)!;
       matches.forEach((match) => existingMatches.push(match));
     } else {
-      result.set(element, matches);
+      this.resultMap.set(element, matches);
     }
   }
 
